@@ -1,6 +1,4 @@
-use std::io::Read;
-
-use byteorder::WriteBytesExt;
+use std::io::{Read, Write};
 
 fn hand(src_stream: &std::net::TcpStream, id: u64) -> Result<(), Box<dyn std::error::Error>> {
     println!("{:#08x} src addr: {}", id, src_stream.peer_addr().unwrap());
@@ -15,8 +13,8 @@ fn hand(src_stream: &std::net::TcpStream, id: u64) -> Result<(), Box<dyn std::er
     src_reader.read_exact(&mut buf[0..1])?;
     let nauth = buf[0];
     src_reader.read_exact(&mut buf[0..nauth as usize])?;
-    src_writer.write_u8(0x05)?;
-    src_writer.write_u8(0x00)?;
+    src_writer.write_all(&[0x05])?;
+    src_writer.write_all(&[0x00])?;
     src_reader.read_exact(&mut buf[0..1])?;
     if buf[0] != 0x05 {
         panic!("unreachable")
@@ -64,17 +62,7 @@ fn hand(src_stream: &std::net::TcpStream, id: u64) -> Result<(), Box<dyn std::er
     println!("{:#08x} dst addr: {}", id, dst);
 
     let dst_stream = std::net::TcpStream::connect(&dst)?;
-
-    src_writer.write_u8(0x05)?;
-    src_writer.write_u8(0x00)?;
-    src_writer.write_u8(0x00)?;
-    src_writer.write_u8(0x01)?;
-    src_writer.write_u8(0x00)?;
-    src_writer.write_u8(0x00)?;
-    src_writer.write_u8(0x00)?;
-    src_writer.write_u8(0x00)?;
-    src_writer.write_u8(0x00)?;
-    src_writer.write_u8(0x00)?;
+    src_writer.write_all(&[0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])?;
 
     let mut dst_reader = dst_stream.try_clone()?;
     let mut dst_writer = dst_stream.try_clone()?;
